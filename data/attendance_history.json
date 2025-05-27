@@ -1,1 +1,41 @@
-[]
+[
+    {
+        "date": "2025-05-27",
+        "time": "15:53:04",
+        "department": "EXTC",
+        "year": "TY",
+        "division": "B",
+        "subject": "Mini Project",
+        "time_slot": "03:30 - 04:30",
+        "records": [
+            {
+                "student_name": "Shubham Pitekar",
+                "status": "Present",
+                "confidence": "73.2%",
+                "model": "ArcFace",
+                "manually_corrected": false
+            },
+            {
+                "student_name": "Sachin Lonkar",
+                "status": "Present",
+                "confidence": "61.7%",
+                "model": "ArcFace",
+                "manually_corrected": false
+            },
+            {
+                "student_name": "Anushka Mote",
+                "status": "Absent",
+                "confidence": "17.2%",
+                "model": "ArcFace",
+                "manually_corrected": false
+            },
+            {
+                "student_name": "Sai Kenekar",
+                "status": "Present",
+                "confidence": "60.6%",
+                "model": "ArcFace",
+                "manually_corrected": false
+            }
+        ]
+    }
+]

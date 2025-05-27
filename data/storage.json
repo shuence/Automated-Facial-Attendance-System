@@ -1,7 +1,9 @@
 {
     "students": [
         "shubham_pitekar.jpg",
-        "sanika_chavan.jpg"
+        "sachin_lonkar.jpg",
+        "anushka_mote.jpg",
+        "sai_kenekar.jpg"
     ],
     "classes": [
         {}
@@ -28,25 +30,67 @@
             "photo": "shubham_pitekar.jpg",
             "registered_date": "2025-05-27"
         },
-        "sanika_chavan.jpg": {
-            "name": "Sanika Chavan",
-            "id": "EC3231",
-            "department": "Electronics",
+        "sachin_lonkar.jpg": {
+            "name": "Sachin Lonkar",
+            "id": "EC3268",
+            "department": "EXTC",
             "year": "TY",
             "division": "B",
             "subjects": [
+                "AWP",
                 "DC",
                 "M&M",
                 "CN",
                 "ESD",
-                "AWP",
                 "M&M Lab",
-                "Mini Project",
                 "DC Lab",
+                "Mini Project",
                 "Mentor Mentee",
                 "Seminar"
             ],
-            "photo": "sanika_chavan.jpg",
+            "photo": "sachin_lonkar.jpg",
+            "registered_date": "2025-05-27"
+        },
+        "anushka_mote.jpg": {
+            "name": "Anushka Mote",
+            "id": "ec3172",
+            "department": "EXTC",
+            "year": "TY",
+            "division": "A",
+            "subjects": [
+                "AWP",
+                "DC",
+                "M&M",
+                "CN",
+                "ESD",
+                "M&M Lab",
+                "DC Lab",
+                "Mini Project",
+                "Mentor Mentee",
+                "Seminar"
+            ],
+            "photo": "anushka_mote.jpg",
+            "registered_date": "2025-05-27"
+        },
+        "sai_kenekar.jpg": {
+            "name": "Sai Kenekar",
+            "id": "EC3267",
+            "department": "EXTC",
+            "year": "TY",
+            "division": "B",
+            "subjects": [
+                "AWP",
+                "DC",
+                "M&M",
+                "CN",
+                "ESD",
+                "M&M Lab",
+                "DC Lab",
+                "Mini Project",
+                "Mentor Mentee",
+                "Seminar"
+            ],
+            "photo": "sai_kenekar.jpg",
             "registered_date": "2025-05-27"
         }
     },

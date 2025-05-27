@@ -1,0 +1,5 @@
+Date,Time,Department,Year,Division,Subject,Time_Slot,Student_Name,Status,Confidence,Model,Manually_Corrected
+2025-05-27,15:53:04,EXTC,TY,B,Mini Project,03:30 - 04:30,Shubham Pitekar,Present,73.2%,ArcFace,False
+2025-05-27,15:53:04,EXTC,TY,B,Mini Project,03:30 - 04:30,Sachin Lonkar,Present,61.7%,ArcFace,False
+2025-05-27,15:53:04,EXTC,TY,B,Mini Project,03:30 - 04:30,Anushka Mote,Absent,17.2%,ArcFace,False
+2025-05-27,15:53:04,EXTC,TY,B,Mini Project,03:30 - 04:30,Sai Kenekar,Present,60.6%,ArcFace,False
