@@ -49,5 +49,13 @@
             "photo": "sanika_chavan.jpg",
             "registered_date": "2025-05-27"
         }
+    },
+    "settings": {
+        "confidence_threshold": 40,
+        "medium_confidence": 85,
+        "show_low_confidence": false,
+        "default_model": "ArcFace",
+        "backup_model": "ArcFace",
+        "dark_mode": true
     }
 }

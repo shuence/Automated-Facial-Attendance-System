@@ -1156,66 +1156,80 @@ def show_attendance_page():
     if st.session_state.attendance_results:
         st.markdown("### 📊 Attendance Summary")
         
-        # Create DataFrame for display
-        df = pd.DataFrame([
-            {
-                'Name': record['Student_Name'],
-                'Status': record['Status'],
-                'Confidence': record['Confidence'],
-                'Photos': record['Analysis']['photos_appeared'],
-                'Best Match': f"{record['Analysis']['best_match']:.1f}%",
-                'Model': record['Model'] or 'N/A'
-            }
-            for record in st.session_state.attendance_results
-        ])
+        # Show the final table with direct corrections
+        st.markdown("### 📋 Final Attendance")
         
-        # Calculate statistics
-        total = len(df)
-        present = len(df[df['Status'] == 'Present'])
+        # Create DataFrame for display with correction buttons
+        records_for_display = []
+        for idx, record in enumerate(st.session_state.attendance_results):
+            status = record['Status']
+            confidence = record['Confidence']
+            analysis = record['Analysis']
+            
+            records_for_display.append({
+                'Name': record['Student_Name'],
+                'Status': status,
+                'Confidence': confidence,
+                'Photos': analysis['photos_appeared'],
+                'Best Match': f"{analysis['best_match']:.1f}%",
+                'Model': record['Model'] or 'N/A',
+                'Action': idx  # Store index for button handling
+            })
+        
+        df = pd.DataFrame(records_for_display)
+        
+        # Create a container for the table
+        table_container = st.container()
+        
+        with table_container:
+            # Display each record with inline correction
+            for idx, row in df.iterrows():
+                status_color = "#d4edda" if row['Status'] == 'Present' else "#f8d7da"
+                
+                col1, col2, col3, col4, col5 = st.columns([3, 2, 2, 2, 2])
+                
+                with col1:
+                    st.markdown(f"""
+                    <div style="padding: 0.5rem; border-radius: 0.25rem; background-color: {status_color};">
+                        <strong>{row['Name']}</strong>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col2:
+                    # Toggle button for status
+                    new_status = 'Absent' if row['Status'] == 'Present' else 'Present'
+                    if st.button(
+                        f"Mark {new_status}",
+                        key=f"toggle_{idx}",
+                        help=f"Current: {row['Status']}"
+                    ):
+                        st.session_state.attendance_results[idx]['Status'] = new_status
+                        st.session_state.attendance_results[idx]['Manually_Corrected'] = True
+                        st.rerun()
+                
+                with col3:
+                    st.write(f"Confidence: {row['Confidence']}")
+                
+                with col4:
+                    st.write(f"Photos: {row['Photos']}")
+                
+                with col5:
+                    if st.session_state.attendance_results[idx].get('Manually_Corrected'):
+                        st.markdown("🖊️ *Edited*")
+        
+        # Show summary statistics
+        st.markdown("### 📊 Summary")
+        total = len(st.session_state.attendance_results)
+        present = len([r for r in st.session_state.attendance_results if r['Status'] == 'Present'])
         absent = total - present
         
-        # Display statistics
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Total Students", total)
+            st.metric("Total", total)
         with col2:
             st.metric("Present", present)
         with col3:
             st.metric("Absent", absent)
-        
-        # Show correction interface
-        st.markdown("### ✏️ Manual Corrections")
-        show_corrections = st.button("Show/Hide Correction Panel", key="toggle_corrections")
-        
-        if show_corrections:
-            for idx, record in enumerate(st.session_state.attendance_results):
-                status_color = "#d4edda" if record['Status'] == 'Present' else "#f8d7da"
-                st.markdown(f"""
-                <div style="padding: 0.5rem; margin: 0.25rem 0; border-radius: 0.25rem; background-color: {status_color};">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <strong>{record['Student_Name']}</strong> | 
-                            Confidence: {record['Confidence']} | 
-                            Status: {record['Status']}
-                        </div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Correction checkbox
-                if st.checkbox(
-                    f"Mark as {'Absent' if record['Status'] == 'Present' else 'Present'}", 
-                    key=f"correct_{idx}",
-                    help=f"Current confidence: {record['Confidence']}"
-                ):
-                    st.session_state.attendance_results[idx]['Status'] = (
-                        'Absent' if record['Status'] == 'Present' else 'Present'
-                    )
-                    st.session_state.attendance_results[idx]['Manually_Corrected'] = True
-        
-        # Show the final table
-        st.markdown("### 📋 Final Attendance")
-        st.dataframe(df, use_container_width=True)
         
         # Confirmation and Save
         col1, col2 = st.columns(2)
@@ -1534,20 +1548,49 @@ def show_attendance_history():
     """, unsafe_allow_html=True)
     
     # Filters
+    st.markdown("### 🔍 Filter Records")
+    
+    # Date filter
+    date_filter = st.date_input("Select Date", key="history_date_filter")
+    
+    # Class filters - match take attendance schema
     col1, col2, col3 = st.columns(3)
+    
     with col1:
-        date_filter = st.date_input("Select Date")
+        department_filter = st.selectbox(
+            "Department",
+            ["All"] + st.session_state.departments,
+            key="history_department_filter"
+        )
+    
     with col2:
-        # Create class options from departments, years, and divisions
-        class_options = ["All Classes"] + [
-            f"{dept} {year} {div}"
-            for dept in st.session_state.departments
-            for year in st.session_state.years
-            for div in st.session_state.divisions
-        ]
-        class_filter = st.selectbox("Select Class", class_options)
+        year_filter = st.selectbox(
+            "Year",
+            ["All"] + st.session_state.years,
+            key="history_year_filter"
+        )
+    
     with col3:
-        status_filter = st.selectbox("Select Status", ["All", "Present", "Absent"])
+        division_filter = st.selectbox(
+            "Division",
+            ["All"] + st.session_state.divisions,
+            key="history_division_filter"
+        )
+    
+    # Additional filters
+    col1, col2 = st.columns(2)
+    with col1:
+        subject_filter = st.selectbox(
+            "Subject",
+            ["All"] + st.session_state.subjects,
+            key="history_subject_filter"
+        )
+    with col2:
+        status_filter = st.selectbox(
+            "Attendance Status",
+            ["All", "Present", "Absent"],
+            key="history_status_filter"
+        )
     
     # Load and filter history
     history = load_attendance_history()
@@ -1581,60 +1624,64 @@ def show_attendance_history():
         # Apply filters
         if date_filter:
             df = df[df['date'] == date_filter.strftime("%Y-%m-%d")]
-        if class_filter != "All Classes":
-            # Split class filter into components
-            dept, year, div = class_filter.split()
-            df = df[
-                (df['department'] == dept) & 
-                (df['year'] == year) & 
-                (df['division'] == div)
-            ]
+        
+        if department_filter != "All":
+            df = df[df['department'] == department_filter]
+        
+        if year_filter != "All":
+            df = df[df['year'] == year_filter]
+        
+        if division_filter != "All":
+            df = df[df['division'] == division_filter]
+        
+        if subject_filter != "All":
+            df = df[df['subject'] == subject_filter]
+        
         if status_filter != "All":
             df = df[df['status'] == status_filter]
         
         if len(df) > 0:
             # Display statistics
+            st.markdown("### 📊 Attendance Summary")
+            
             total = len(df)
             present = len(df[df['status'] == 'Present'])
             absent = total - present
             
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.markdown("""
-                <div class="stat-card">
-                    <h3>Total</h3>
-                    <h2>{}</h2>
-                </div>
-                """.format(total), unsafe_allow_html=True)
-            
+                st.metric("Total Students", total)
             with col2:
-                st.markdown(f"""
-                <div class="stat-card success-text">
-                    <h3>Present</h3>
-                    <h2>{present}</h2>
-                </div>
-                """, unsafe_allow_html=True)
-            
+                st.metric("Present", present)
             with col3:
-                st.markdown(f"""
-                <div class="stat-card error-text">
-                    <h3>Absent</h3>
-                    <h2>{absent}</h2>
-                </div>
-                """, unsafe_allow_html=True)
+                st.metric("Absent", absent)
             
             # Group by date and class to show sessions
-            sessions = df.groupby(['date', 'time', 'department', 'year', 'division', 'subject']).agg({
+            st.markdown("### 📅 Attendance Sessions")
+            
+            sessions = df.groupby([
+                'date', 'time', 'department', 'year', 
+                'division', 'subject', 'time_slot'
+            ]).agg({
                 'student_name': 'count',
                 'status': lambda x: sum(x == 'Present')
             }).reset_index()
             
-            sessions.columns = ['Date', 'Time', 'Department', 'Year', 'Division', 'Subject', 'Total Students', 'Present']
+            sessions.columns = [
+                'Date', 'Time', 'Department', 'Year', 
+                'Division', 'Subject', 'Time Slot',
+                'Total Students', 'Present'
+            ]
             sessions['Absent'] = sessions['Total Students'] - sessions['Present']
             
-            # Display sessions
-            st.markdown("### 📅 Attendance Sessions")
-            st.dataframe(sessions, use_container_width=True)
+            # Sort by date and time
+            sessions = sessions.sort_values(['Date', 'Time'], ascending=[False, False])
+            
+            st.dataframe(
+                sessions,
+                use_container_width=True,
+                hide_index=True
+            )
             
             # Display detailed records
             st.markdown("### 👥 Student Records")
@@ -1642,34 +1689,49 @@ def show_attendance_history():
             # Prepare detailed view
             detailed_view = df[[
                 'date', 'time', 'department', 'year', 'division', 
-                'subject', 'student_name', 'status', 'confidence'
+                'subject', 'time_slot', 'student_name', 'status', 
+                'confidence', 'manually_corrected'
             ]].copy()
             
             detailed_view.columns = [
                 'Date', 'Time', 'Department', 'Year', 'Division', 
-                'Subject', 'Student Name', 'Status', 'Confidence'
+                'Subject', 'Time Slot', 'Student Name', 'Status', 
+                'Confidence', 'Manually Corrected'
             ]
             
-            # Apply styling
-            def style_status(val):
-                color = '#d4edda' if val == 'Present' else '#f8d7da'
-                return f'background-color: {color}'
-            
-            styled_df = detailed_view.style.applymap(
-                style_status, 
-                subset=['Status']
+            # Sort by date, time, and student name
+            detailed_view = detailed_view.sort_values(
+                ['Date', 'Time', 'Student Name'],
+                ascending=[False, False, True]
             )
             
-            st.dataframe(styled_df, use_container_width=True)
+            # Apply styling
+            def style_dataframe(df):
+                return df.style.apply(
+                    lambda x: ['background-color: #d4edda' if v == 'Present' else 'background-color: #f8d7da' for v in x],
+                    subset=['Status']
+                ).apply(
+                    lambda x: ['color: #dc3545' if v else '' for v in x],
+                    subset=['Manually Corrected']
+                )
+            
+            styled_df = style_dataframe(detailed_view)
+            st.dataframe(
+                styled_df,
+                use_container_width=True,
+                hide_index=True
+            )
             
             # Export options
+            st.markdown("### 💾 Export Options")
             col1, col2 = st.columns(2)
+            
             with col1:
                 csv = detailed_view.to_csv(index=False)
                 st.download_button(
-                    "⬇️ Download Records",
+                    "⬇️ Download Detailed Records",
                     data=csv,
-                    file_name=f"attendance_records_{datetime.now().strftime('%Y%m%d')}.csv",
+                    file_name=f"attendance_records_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                     mime="text/csv"
                 )
             
