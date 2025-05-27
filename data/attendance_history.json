@@ -1,0 +1,27 @@
+[
+    {
+        "date": "2025-05-27",
+        "time": "12:10:07",
+        "department": "Electronics",
+        "year": "FY",
+        "division": "A",
+        "subject": "AWP",
+        "time_slot": "10:15 - 11:15",
+        "records": [
+            {
+                "student_name": "Shubham Pitekar",
+                "status": "Present",
+                "confidence": "56.4%",
+                "model": "ArcFace",
+                "manually_corrected": false
+            },
+            {
+                "student_name": "Sanika Chavan",
+                "status": "Absent",
+                "confidence": "8.3%",
+                "model": "ArcFace",
+                "manually_corrected": false
+            }
+        ]
+    }
+]

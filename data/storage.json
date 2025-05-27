@@ -1,0 +1,53 @@
+{
+    "students": [
+        "shubham_pitekar.jpg",
+        "sanika_chavan.jpg"
+    ],
+    "classes": [
+        {}
+    ],
+    "students_data": {
+        "shubham_pitekar.jpg": {
+            "name": "Shubham Pitekar",
+            "id": "EC3230",
+            "department": "Electronics",
+            "year": "TY",
+            "division": "B",
+            "subjects": [
+                "DC",
+                "M&M",
+                "CN",
+                "ESD",
+                "AWP",
+                "M&M Lab",
+                "Mini Project",
+                "DC Lab",
+                "Mentor Mentee",
+                "Seminar"
+            ],
+            "photo": "shubham_pitekar.jpg",
+            "registered_date": "2025-05-27"
+        },
+        "sanika_chavan.jpg": {
+            "name": "Sanika Chavan",
+            "id": "EC3231",
+            "department": "Electronics",
+            "year": "TY",
+            "division": "B",
+            "subjects": [
+                "DC",
+                "M&M",
+                "CN",
+                "ESD",
+                "AWP",
+                "M&M Lab",
+                "Mini Project",
+                "DC Lab",
+                "Mentor Mentee",
+                "Seminar"
+            ],
+            "photo": "sanika_chavan.jpg",
+            "registered_date": "2025-05-27"
+        }
+    }
+}
