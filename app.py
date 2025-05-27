@@ -288,10 +288,6 @@ def process_face(face_img):
         elif len(face_img.shape) == 2:
             # If grayscale, convert to BGR
             face_img = cv2.cvtColor(face_img, cv2.COLOR_GRAY2BGR)
-        
-        # Enhance image quality
-        face_img = cv2.fastNlMeansDenoisingColored(face_img, None, 10, 10, 7, 21)
-        face_img = cv2.detailEnhance(face_img, sigma_s=10, sigma_r=0.15)
             
         return face_img
     except Exception as e:
@@ -372,83 +368,13 @@ def capture_from_webcam():
     
     return None
 
-def enhance_image(image):
-    """Enhance image quality for better face recognition"""
-    try:
-        # Input validation
-        if image is None:
-            raise ValueError("Input image is None")
-        
-        # Ensure image is 3-channel BGR
-        if len(image.shape) != 3 or image.shape[2] != 3:
-            raise ValueError("Image must be 3-channel BGR")
-            
-        # Convert to uint8 if needed
-        if image.dtype != np.uint8:
-            if image.dtype in [np.float32, np.float64]:
-                image = (image * 255).clip(0, 255).astype(np.uint8)
-            else:
-                image = image.astype(np.uint8)
-        
-        # Basic color correction and normalization
-        enhanced = cv2.normalize(image, None, 0, 255, cv2.NORM_MINMAX)
-        
-        # Apply bilateral filter for noise reduction while preserving edges
-        enhanced = cv2.bilateralFilter(enhanced, 9, 75, 75)
-        
-        # Enhance contrast using CLAHE on each channel separately
-        lab = cv2.cvtColor(enhanced, cv2.COLOR_BGR2LAB)
-        l, a, b = cv2.split(lab)
-        
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-        l = clahe.apply(l)
-        
-        # Merge channels back
-        enhanced_lab = cv2.merge([l, a, b])
-        enhanced = cv2.cvtColor(enhanced_lab, cv2.COLOR_LAB2BGR)
-        
-        # Sharpen the image
-        sharpen_kernel = np.array([[-0.5,-0.5,-0.5],
-                                 [-0.5, 5,-0.5],
-                                 [-0.5,-0.5,-0.5]])
-        enhanced = cv2.filter2D(enhanced, -1, sharpen_kernel)
-        
-        # Final normalization
-        enhanced = cv2.normalize(enhanced, None, 0, 255, cv2.NORM_MINMAX)
-        enhanced = enhanced.astype(np.uint8)
-        
-        return enhanced
-        
-    except Exception as e:
-        st.error(f"Error in image enhancement: {str(e)}")
-        # Return original image if enhancement fails
-        return image if isinstance(image, np.ndarray) else None
-
 def verify_face(img1_path, img2_path, model_name='ArcFace'):
     """Compare two face images with enhanced accuracy"""
     try:
-        # Load and enhance images
-        img1 = cv2.imread(normalize_path(img1_path))
-        img2 = cv2.imread(normalize_path(img2_path))
-        
-        if img1 is None or img2 is None:
-            raise ValueError("Could not load images")
-        
-        # Enhanced preprocessing
-        img1_enhanced = enhance_image(img1)
-        img2_enhanced = enhance_image(img2)
-        
-        # Save enhanced images
-        temp_img1 = normalize_path(os.path.join(base_dirs['temp'], 'enhanced_1.jpg'))
-        temp_img2 = normalize_path(os.path.join(base_dirs['temp'], 'enhanced_2.jpg'))
-        
-        cv2.imwrite(temp_img1, img1_enhanced)
-        cv2.imwrite(temp_img2, img2_enhanced)
-        
         # Use ArcFace model for verification
         result = verify(
-            img1_path=temp_img1,
-            img2_path=temp_img2,
+            img1_path=img1_path,
+            img2_path=img2_path,
             model_name='ArcFace',
             detector_backend='retinaface',
             enforce_detection=False,
@@ -725,204 +651,213 @@ def show_student_management():
     </div>
     """, unsafe_allow_html=True)
     
-    col1, col2 = st.columns([2, 3])
+    # Register New Student Section
+    st.markdown("""
+    <div class="info-card">
+        <h3>📝 Register New Student</h3>
+    </div>
+    """, unsafe_allow_html=True)
     
+    # Basic Information
+    col1, col2 = st.columns(2)
     with col1:
-        st.markdown("""
-        <div class="info-card">
-            <h3>📝 Register New Student</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Basic Information
         student_name = st.text_input("Student Name")
+    with col2:
         student_id = st.text_input("Student ID (PRN)")
-        
-        # Academic Information
+    
+    # Academic Information
+    col1, col2, col3 = st.columns(3)
+    with col1:
         department = st.selectbox(
             "Branch",
             st.session_state.departments,
             index=st.session_state.departments.index(st.session_state.default_department)
         )
+    with col2:
         year = st.selectbox(
             "Year",
             st.session_state.years,
             index=st.session_state.years.index(st.session_state.default_year)
         )
+    with col3:
         division = st.selectbox(
             "Division",
             st.session_state.divisions,
             index=st.session_state.divisions.index(st.session_state.default_division)
         )
-        
-        # Subject Selection with Select All option
-        subjects = [
-            "AWP", "DC", "M&M", "CN", "ESD", 
-            "M&M Lab", "DC Lab", "Mini Project",
-            "Mentor Mentee", "Seminar"
-        ]
-        
-        # Initialize session state for subject selection if not exists
-        if 'selected_all_subjects' not in st.session_state:
-            st.session_state.selected_all_subjects = False
-        
+    
+    # Subject Selection with Select All option
+    subjects = [
+        "AWP", "DC", "M&M", "CN", "ESD", 
+        "M&M Lab", "DC Lab", "Mini Project",
+        "Mentor Mentee", "Seminar"
+    ]
+    
+    # Initialize session state for subject selection if not exists
+    if 'selected_all_subjects' not in st.session_state:
+        st.session_state.selected_all_subjects = False
+    
+    col1, col2 = st.columns([1, 3])
+    with col1:
         # Select All checkbox
         select_all = st.checkbox("Select All Subjects", value=st.session_state.selected_all_subjects)
-        
-        # Update session state and selected subjects based on Select All
-        if select_all != st.session_state.selected_all_subjects:
-            st.session_state.selected_all_subjects = select_all
-            if select_all:
-                st.session_state.selected_subjects = subjects.copy()
-            else:
-                st.session_state.selected_subjects = []
-        
-        # Initialize selected_subjects in session state if not exists
-        if 'selected_subjects' not in st.session_state:
+    
+    # Update session state and selected subjects based on Select All
+    if select_all != st.session_state.selected_all_subjects:
+        st.session_state.selected_all_subjects = select_all
+        if select_all:
+            st.session_state.selected_subjects = subjects.copy()
+        else:
             st.session_state.selected_subjects = []
-        
-        # Show multiselect with current selection
-        selected_subjects = st.multiselect(
-            "Subjects",
-            subjects,
-            default=st.session_state.selected_subjects
-        )
-        
-        # Update session state based on multiselect
-        st.session_state.selected_subjects = selected_subjects
-        
-        # Update Select All checkbox based on selection
-        if len(selected_subjects) == len(subjects):
-            st.session_state.selected_all_subjects = True
-        elif len(selected_subjects) < len(subjects):
-            st.session_state.selected_all_subjects = False
-        
-        # Photo Upload with Preview Toggle
-        show_preview = st.checkbox("Show Photo Preview", value=False)
+    
+    # Initialize selected_subjects in session state if not exists
+    if 'selected_subjects' not in st.session_state:
+        st.session_state.selected_subjects = []
+    
+    # Show multiselect with current selection
+    selected_subjects = st.multiselect(
+        "Subjects",
+        subjects,
+        default=st.session_state.selected_subjects
+    )
+    
+    # Update session state based on multiselect
+    st.session_state.selected_subjects = selected_subjects
+    
+    # Update Select All checkbox based on selection
+    if len(selected_subjects) == len(subjects):
+        st.session_state.selected_all_subjects = True
+    elif len(selected_subjects) < len(subjects):
+        st.session_state.selected_all_subjects = False
+    
+    # Photo Upload with Preview Toggle
+    col1, col2 = st.columns([3, 1])
+    with col1:
         student_photo = st.file_uploader(
             "Upload student photo",
             type=['jpg', 'jpeg', 'png'],
             key='student_photo'
         )
-        
-        if student_photo and show_preview:
-            # Smaller preview size
-            preview_size = (100, 100)
-            preview = Image.open(student_photo)
-            preview.thumbnail(preview_size, Image.Resampling.LANCZOS)
-            st.image(preview, use_container_width=False, caption="Preview")
-        
-        if st.button("Register Student", type="primary"):
-            if not student_photo or not student_name:
-                st.error("Please provide both photo and name")
-            else:
-                try:
-                    filename = f"{student_name.lower().replace(' ', '_')}.jpg"
-                    filepath = os.path.join(base_dirs['student_images'], filename)
-                    
-                    if save_image(student_photo.getvalue(), filepath):
-                        if filename not in st.session_state.student_files:
-                            student_data = {
-                                'name': student_name,
-                                'id': student_id,
-                                'department': department,
-                                'year': year,
-                                'division': division,
-                                'subjects': selected_subjects,
-                                'photo': filename,
-                                'registered_date': datetime.now().strftime("%Y-%m-%d")
-                            }
-                            
-                            # Update storage with full student data
-                            if 'students_data' not in st.session_state.storage:
-                                st.session_state.storage['students_data'] = {}
-                            
-                            st.session_state.storage['students_data'][filename] = student_data
-                            st.session_state.student_files.append(filename)
-                            st.session_state.storage['students'] = st.session_state.student_files
-                            save_storage(st.session_state.storage)
-                            st.success(f"✅ Successfully registered {student_name}")
-                            
-                            # Clear the form
-                            st.session_state.selected_subjects = []
-                            st.session_state.selected_all_subjects = False
-                            st.rerun()
-                        else:
-                            st.warning("Student already registered")
-                except Exception as e:
-                    st.error(f"Error registering student: {str(e)}")
-    
     with col2:
-        st.markdown("""
-        <div class="info-card">
-            <h3>📋 Registered Students</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Search and filter
-        col1, col2 = st.columns(2)
-        with col1:
-            search = st.text_input("🔍 Search Students")
-        with col2:
-            filter_by = st.selectbox("Filter By", ["All", "Branch", "Year", "Division"])
-            
-            # Update filter label from Department to Branch
-            if filter_by == "Branch":
-                filter_value = st.selectbox(
-                    "Select Branch",
-                    st.session_state.departments
-                )
-            elif filter_by != "All":
-                filter_values = {
-                    "Year": st.session_state.years,
-                    "Division": st.session_state.divisions
-                }
-                filter_value = st.selectbox(
-                    f"Select {filter_by}",
-                    filter_values.get(filter_by, [])
-                )
-        
-        # Display students in a grid
-        if 'students_data' in st.session_state.storage:
-            for file, student_data in st.session_state.storage['students_data'].items():
-                # Update filter logic to use Branch instead of Department
-                filter_match = (
-                    filter_by == "All" or
-                    (filter_by == "Branch" and student_data.get('department', '') == filter_value) or
-                    (filter_by == "Year" and student_data.get('year', '') == filter_value) or
-                    (filter_by == "Division" and student_data.get('division', '') == filter_value)
-                )
-                
-                if (search.lower() in student_data['name'].lower() or not search) and filter_match:
-                    with st.expander(f"👤 {student_data['name']}"):
-                        col1, col2 = st.columns([3, 1])
-                        with col1:
-                            st.write(f"**PRN:** {student_data['id']}")
-                            st.write(f"**Branch:** {student_data['department']}")
-                            st.write(f"**Year:** {student_data['year']}")
-                            st.write(f"**Division:** {student_data['division']}")
-                            st.write("**Subjects:**")
-                            for subject in student_data['subjects']:
-                                st.write(f"- {subject}")
-                        with col2:
-                            if st.button("🗑️ Remove", key=f"remove_{file}"):
-                                try:
-                                    # Remove photo file
-                                    photo_path = os.path.join(base_dirs['student_images'], file)
-                                    if os.path.exists(photo_path):
-                                        os.remove(photo_path)
-                                    
-                                    # Remove from storage
-                                    st.session_state.student_files.remove(file)
-                                    del st.session_state.storage['students_data'][file]
-                                    st.session_state.storage['students'] = st.session_state.student_files
-                                    save_storage(st.session_state.storage)
-                                    st.success(f"Removed {student_data['name']}")
-                                    st.rerun()
-                                except Exception as e:
-                                    st.error(f"Error removing student: {str(e)}")
+        show_preview = st.checkbox("Show Preview", value=False)
+    
+    if student_photo and show_preview:
+        # Smaller preview size
+        preview_size = (100, 100)
+        preview = Image.open(student_photo)
+        preview.thumbnail(preview_size, Image.Resampling.LANCZOS)
+        st.image(preview, use_container_width=False, caption="Preview")
+    
+    if st.button("Register Student", type="primary"):
+        if not student_photo or not student_name:
+            st.error("Please provide both photo and name")
         else:
-            st.info("No students registered yet")
+            try:
+                filename = f"{student_name.lower().replace(' ', '_')}.jpg"
+                filepath = os.path.join(base_dirs['student_images'], filename)
+                
+                if save_image(student_photo.getvalue(), filepath):
+                    if filename not in st.session_state.student_files:
+                        student_data = {
+                            'name': student_name,
+                            'id': student_id,
+                            'department': department,
+                            'year': year,
+                            'division': division,
+                            'subjects': selected_subjects,
+                            'photo': filename,
+                            'registered_date': datetime.now().strftime("%Y-%m-%d")
+                        }
+                        
+                        # Update storage with full student data
+                        if 'students_data' not in st.session_state.storage:
+                            st.session_state.storage['students_data'] = {}
+                        
+                        st.session_state.storage['students_data'][filename] = student_data
+                        st.session_state.student_files.append(filename)
+                        st.session_state.storage['students'] = st.session_state.student_files
+                        save_storage(st.session_state.storage)
+                        st.success(f"✅ Successfully registered {student_name}")
+                        
+                        # Clear the form
+                        st.session_state.selected_subjects = []
+                        st.session_state.selected_all_subjects = False
+                        st.rerun()
+                    else:
+                        st.warning("Student already registered")
+            except Exception as e:
+                st.error(f"Error registering student: {str(e)}")
+    
+    # Registered Students Section
+    st.markdown("""
+    <div class="info-card" style="margin-top: 2rem;">
+        <h3>📋 Registered Students</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Search and filter in a single row
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        search = st.text_input("🔍 Search Students")
+    with col2:
+        filter_by = st.selectbox("Filter By", ["All", "Branch", "Year", "Division"])
+    with col3:
+        if filter_by == "Branch":
+            filter_value = st.selectbox(
+                "Select Branch",
+                st.session_state.departments
+            )
+        elif filter_by != "All":
+            filter_values = {
+                "Year": st.session_state.years,
+                "Division": st.session_state.divisions
+            }
+            filter_value = st.selectbox(
+                f"Select {filter_by}",
+                filter_values.get(filter_by, [])
+            )
+    
+    # Display students in a grid
+    if 'students_data' in st.session_state.storage:
+        for file, student_data in st.session_state.storage['students_data'].items():
+            # Update filter logic to use Branch instead of Department
+            filter_match = (
+                filter_by == "All" or
+                (filter_by == "Branch" and student_data.get('department', '') == filter_value) or
+                (filter_by == "Year" and student_data.get('year', '') == filter_value) or
+                (filter_by == "Division" and student_data.get('division', '') == filter_value)
+            )
+            
+            if (search.lower() in student_data['name'].lower() or not search) and filter_match:
+                with st.expander(f"👤 {student_data['name']}"):
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.write(f"**PRN:** {student_data['id']}")
+                        st.write(f"**Branch:** {student_data['department']}")
+                        st.write(f"**Year:** {student_data['year']}")
+                        st.write(f"**Division:** {student_data['division']}")
+                        st.write("**Subjects:**")
+                        for subject in student_data['subjects']:
+                            st.write(f"- {subject}")
+                    with col2:
+                        if st.button("🗑️ Remove", key=f"remove_{file}"):
+                            try:
+                                # Remove photo file
+                                photo_path = os.path.join(base_dirs['student_images'], file)
+                                if os.path.exists(photo_path):
+                                    os.remove(photo_path)
+                                
+                                # Remove from storage
+                                st.session_state.student_files.remove(file)
+                                del st.session_state.storage['students_data'][file]
+                                st.session_state.storage['students'] = st.session_state.student_files
+                                save_storage(st.session_state.storage)
+                                st.success(f"Removed {student_data['name']}")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Error removing student: {str(e)}")
+    else:
+        st.info("No students registered yet")
 
 def show_attendance_page():
     st.markdown("""
@@ -1243,19 +1178,9 @@ def show_attendance_page():
 def process_attendance_image(image_path, department, year, division, subject, photo_number):
     """Process a single class photo for attendance"""
     try:
-        # First enhance the class photo
-        class_img = cv2.imread(normalize_path(image_path))
-        if class_img is None:
-            raise ValueError("Could not load class image")
-        
-        # Apply same enhancement as individual faces
-        enhanced_class_img = enhance_image(class_img)
-        enhanced_class_path = normalize_path(os.path.join(base_dirs['temp'], f'enhanced_class_{photo_number}.jpg'))
-        cv2.imwrite(enhanced_class_path, enhanced_class_img)
-        
-        # Enhanced face detection on the enhanced image
+        # Extract faces from the image
         faces = extract_faces(
-            img_path=enhanced_class_path,
+            img_path=image_path,
             enforce_detection=False,
             detector_backend='retinaface',
             align=True
