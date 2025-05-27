@@ -206,7 +206,7 @@ if 'page' not in st.session_state:
 
 # Initialize class-related session states with defaults
 if 'departments' not in st.session_state:
-    st.session_state.departments = ["Electronics", "Computer Science", "Information Technology", "Mechanical"]
+    st.session_state.departments = ["EXTC", "CSE", "AIML", "MECH", "CIVIL"]
 if 'years' not in st.session_state:
     st.session_state.years = ["FY", "SY", "TY", "Final Year"]
 if 'divisions' not in st.session_state:
@@ -220,7 +220,7 @@ if 'subjects' not in st.session_state:
 
 # Initialize default selections
 if 'default_department' not in st.session_state:
-    st.session_state.default_department = "Electronics"
+    st.session_state.default_department = "EXTC"
 if 'default_year' not in st.session_state:
     st.session_state.default_year = "TY"
 if 'default_division' not in st.session_state:
@@ -739,9 +739,21 @@ def show_student_management():
         student_id = st.text_input("Student ID (PRN)")
         
         # Academic Information
-        department = st.selectbox("Department", st.session_state.departments)
-        year = st.selectbox("Year", st.session_state.years)
-        division = st.selectbox("Division", st.session_state.divisions)
+        department = st.selectbox(
+            "Branch",
+            st.session_state.departments,
+            index=st.session_state.departments.index(st.session_state.default_department)
+        )
+        year = st.selectbox(
+            "Year",
+            st.session_state.years,
+            index=st.session_state.years.index(st.session_state.default_year)
+        )
+        division = st.selectbox(
+            "Division",
+            st.session_state.divisions,
+            index=st.session_state.divisions.index(st.session_state.default_division)
+        )
         
         # Subject Selection with Select All option
         subjects = [
@@ -852,26 +864,41 @@ def show_student_management():
         with col1:
             search = st.text_input("🔍 Search Students")
         with col2:
-            filter_by = st.selectbox("Filter By", ["All", "Department", "Year", "Division"])
-        
-        if filter_by != "All":
-            filter_value = st.selectbox(
-                f"Select {filter_by}",
-                list(set(student.get(filter_by.lower(), '') 
-                    for student in st.session_state.storage.get('students_data', {}).values()))
-            )
+            filter_by = st.selectbox("Filter By", ["All", "Branch", "Year", "Division"])
+            
+            # Update filter label from Department to Branch
+            if filter_by == "Branch":
+                filter_value = st.selectbox(
+                    "Select Branch",
+                    st.session_state.departments
+                )
+            elif filter_by != "All":
+                filter_values = {
+                    "Year": st.session_state.years,
+                    "Division": st.session_state.divisions
+                }
+                filter_value = st.selectbox(
+                    f"Select {filter_by}",
+                    filter_values.get(filter_by, [])
+                )
         
         # Display students in a grid
         if 'students_data' in st.session_state.storage:
             for file, student_data in st.session_state.storage['students_data'].items():
-                if (search.lower() in student_data['name'].lower() or not search) and \
-                   (filter_by == "All" or student_data.get(filter_by.lower(), '') == filter_value):
-                    
+                # Update filter logic to use Branch instead of Department
+                filter_match = (
+                    filter_by == "All" or
+                    (filter_by == "Branch" and student_data.get('department', '') == filter_value) or
+                    (filter_by == "Year" and student_data.get('year', '') == filter_value) or
+                    (filter_by == "Division" and student_data.get('division', '') == filter_value)
+                )
+                
+                if (search.lower() in student_data['name'].lower() or not search) and filter_match:
                     with st.expander(f"👤 {student_data['name']}"):
                         col1, col2 = st.columns([3, 1])
                         with col1:
                             st.write(f"**PRN:** {student_data['id']}")
-                            st.write(f"**Department:** {student_data['department']}")
+                            st.write(f"**Branch:** {student_data['department']}")
                             st.write(f"**Year:** {student_data['year']}")
                             st.write(f"**Division:** {student_data['division']}")
                             st.write("**Subjects:**")
@@ -1152,86 +1179,17 @@ def show_attendance_page():
                     st.error(f"Error during attendance processing: {str(e)}")
                     st.session_state.processing_complete = False
     
-    # Display results in a table format with corrections
+    # Display results and controls
     if st.session_state.attendance_results:
-        st.markdown("### 📊 Attendance Summary")
+        # Display attendance results with class info
+        display_attendance_results(
+            st.session_state.attendance_results,
+            department=st.session_state.current_attendance_info['department'],
+            year=st.session_state.current_attendance_info['year'],
+            division=st.session_state.current_attendance_info['division']
+        )
         
-        # Show the final table with direct corrections
-        st.markdown("### 📋 Final Attendance")
-        
-        # Create DataFrame for display with correction buttons
-        records_for_display = []
-        for idx, record in enumerate(st.session_state.attendance_results):
-            status = record['Status']
-            confidence = record['Confidence']
-            analysis = record['Analysis']
-            
-            records_for_display.append({
-                'Name': record['Student_Name'],
-                'Status': status,
-                'Confidence': confidence,
-                'Photos': analysis['photos_appeared'],
-                'Best Match': f"{analysis['best_match']:.1f}%",
-                'Model': record['Model'] or 'N/A',
-                'Action': idx  # Store index for button handling
-            })
-        
-        df = pd.DataFrame(records_for_display)
-        
-        # Create a container for the table
-        table_container = st.container()
-        
-        with table_container:
-            # Display each record with inline correction
-            for idx, row in df.iterrows():
-                status_color = "#d4edda" if row['Status'] == 'Present' else "#f8d7da"
-                
-                col1, col2, col3, col4, col5 = st.columns([3, 2, 2, 2, 2])
-                
-                with col1:
-                    st.markdown(f"""
-                    <div style="padding: 0.5rem; border-radius: 0.25rem; background-color: {status_color};">
-                        <strong>{row['Name']}</strong>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col2:
-                    # Toggle button for status
-                    new_status = 'Absent' if row['Status'] == 'Present' else 'Present'
-                    if st.button(
-                        f"Mark {new_status}",
-                        key=f"toggle_{idx}",
-                        help=f"Current: {row['Status']}"
-                    ):
-                        st.session_state.attendance_results[idx]['Status'] = new_status
-                        st.session_state.attendance_results[idx]['Manually_Corrected'] = True
-                        st.rerun()
-                
-                with col3:
-                    st.write(f"Confidence: {row['Confidence']}")
-                
-                with col4:
-                    st.write(f"Photos: {row['Photos']}")
-                
-                with col5:
-                    if st.session_state.attendance_results[idx].get('Manually_Corrected'):
-                        st.markdown("🖊️ *Edited*")
-        
-        # Show summary statistics
-        st.markdown("### 📊 Summary")
-        total = len(st.session_state.attendance_results)
-        present = len([r for r in st.session_state.attendance_results if r['Status'] == 'Present'])
-        absent = total - present
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Total", total)
-        with col2:
-            st.metric("Present", present)
-        with col3:
-            st.metric("Absent", absent)
-        
-        # Confirmation and Save
+        # Save and Reset controls
         col1, col2 = st.columns(2)
         with col1:
             if st.button("✅ Confirm and Save Attendance", type="primary", key="save_attendance_btn"):
@@ -1258,7 +1216,6 @@ def show_attendance_page():
                         'subject': None,
                         'time_slot': None
                     }
-                    
                     st.rerun()
                 else:
                     st.error("Please fill in all class information before saving!")
@@ -1440,7 +1397,13 @@ def save_attendance_records(records, department, year, division, subject, time_s
         with open(ATTENDANCE_HISTORY_FILE, 'w') as f:
             json.dump(history, f, indent=4)
         
-        # Also save as CSV for backup
+        # Save/Update master CSV
+        master_csv_path = os.path.join(
+            base_dirs['attendance'], 
+            f'attendance_{department}_{year}_{division}.csv'
+        )
+        
+        # Create or update master CSV
         df = pd.DataFrame({
             'Date': session_record['date'],
             'Time': session_record['time'],
@@ -1456,18 +1419,20 @@ def save_attendance_records(records, department, year, division, subject, time_s
             'Manually_Corrected': [r['manually_corrected'] for r in session_record['records']]
         })
         
-        csv_filename = os.path.join(
-            base_dirs['attendance'],
-            f"attendance_{department}_{year}_{division}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        )
-        df.to_csv(csv_filename, index=False)
+        # If master CSV exists, append to it
+        if os.path.exists(master_csv_path):
+            existing_df = pd.read_csv(master_csv_path)
+            df = pd.concat([existing_df, df], ignore_index=True)
+        
+        # Save master CSV
+        df.to_csv(master_csv_path, index=False)
         
         return True
     except Exception as e:
         st.error(f"Error saving attendance records: {str(e)}")
         return False
 
-def display_attendance_results(records):
+def display_attendance_results(records, department=None, year=None, division=None):
     """Display attendance results with enhanced visualization"""
     st.markdown("""
     <div class="info-card">
@@ -1475,68 +1440,78 @@ def display_attendance_results(records):
     </div>
     """, unsafe_allow_html=True)
     
-    # Display statistics
+    # Create DataFrame for better analysis
     df = pd.DataFrame(records)
     total = len(records)
     present = len(df[df['Status'] == 'Present'])
     absent = total - present
     
-    col1, col2, col3 = st.columns(3)
+    # Summary Statistics
+    st.markdown("### 📈 Summary Statistics")
+    col1, col2, col3, col4 = st.columns(4)
+    
     with col1:
-        st.markdown(f"""
-        <div class="stat-card">
-            <h3>Total Students</h3>
-            <h2>{total}</h2>
-        </div>
-        """, unsafe_allow_html=True)
-    
+        st.metric("Total Students", total)
     with col2:
-        st.markdown(f"""
-        <div class="stat-card success-text">
-            <h3>Present</h3>
-            <h2>{present}</h2>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Present", present)
     with col3:
-        st.markdown(f"""
-        <div class="stat-card error-text">
-            <h3>Absent</h3>
-            <h2>{absent}</h2>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Absent", absent)
+    with col4:
+        st.metric("Avg Confidence", f"{df['Confidence'].str.rstrip('%').astype(float).mean():.1f}%")
     
-    # Display detailed results with toggle buttons
-    for idx, record in enumerate(records):
-        status_color = "#d4edda" if record['Status'] == 'Present' else "#f8d7da"
+    # Detailed Results Table
+    st.markdown("### 📋 Attendance Preview")
+    
+    # Create containers for each student with status-based styling
+    for _, row in df.iterrows():
+        status_color = "#d4edda" if row['Status'] == 'Present' else "#f8d7da"
+        status_icon = "✅" if row['Status'] == 'Present' else "❌"
+        confidence_value = float(row['Confidence'].strip('%'))
+        confidence_color = (
+            "#28a745" if confidence_value >= 85 else 
+            "#ffc107" if confidence_value >= 60 else 
+            "#dc3545"
+        )
+        
         st.markdown(f"""
-        <div style="padding: 0.5rem; border-radius: 0.25rem; background-color: {status_color}; margin: 0.25rem 0; font-size: 0.9em;">
+        <div style="padding: 0.75rem; border-radius: 0.5rem; background-color: {status_color}; margin: 0.5rem 0;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <strong>{record['Student_Name']}</strong><br/>
-                    Confidence: {record['Confidence']}
+                <div style="flex: 3;">
+                    <strong style="font-size: 1.1em;">{row['Student_Name']}</strong>
                 </div>
-                <div>
-                    <span id="status_{idx}">{record['Status']}</span>
+                <div style="flex: 2; text-align: center;">
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 0.25rem; background-color: white;">
+                        {status_icon} {row['Status']}
+                    </span>
+                </div>
+                <div style="flex: 2; text-align: center;">
+                    <span style="color: {confidence_color}; font-weight: bold;">
+                        {row['Confidence']}
+                    </span>
+                </div>
+                <div style="flex: 2; text-align: right;">
+                    <span style="color: #666; font-size: 0.9em;">
+                        {row['Model']}
+                    </span>
                 </div>
             </div>
-        </div>
+            {
+                f'<div style="margin-top: 0.5rem; font-style: italic; color: #666;">✏️ Manually Corrected</div>'
+                if row.get('Manually_Corrected', False) else ''
+            }
         </div>
         """, unsafe_allow_html=True)
-        
-        # Toggle button with proper label
-        new_status = st.toggle(
-            f"Toggle attendance for {record['Student_Name']}",
-            value=record['Status'] == 'Present',
-            key=f"toggle_{idx}"
-        )
-        record['Status'] = 'Present' if new_status else 'Absent'
     
-    # Download button
-    csv = pd.DataFrame(records).to_csv(index=False)
+    # Download option with class-specific filename
+    filename = "attendance"
+    if department and year and division:
+        filename = f"attendance_{department}_{year}_{division}"
+    filename += f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    
     st.download_button(
         label="⬇️ Download Results",
-        data=csv,
-        file_name=f"attendance_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+        data=df.to_csv(index=False),
+        file_name=filename,
         mime="text/csv"
     )
 

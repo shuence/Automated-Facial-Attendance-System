@@ -1,3 +1,0 @@
-Date,Time,Department,Year,Division,Subject,Time_Slot,Student_Name,Status,Confidence,Model,Manually_Corrected
-2025-05-27,12:10:07,Electronics,FY,A,AWP,10:15 - 11:15,Shubham Pitekar,Present,56.4%,ArcFace,False
-2025-05-27,12:10:07,Electronics,FY,A,AWP,10:15 - 11:15,Sanika Chavan,Absent,8.3%,ArcFace,False
