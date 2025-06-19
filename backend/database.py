@@ -1,7 +1,7 @@
 import os
 import json
 import uuid
-from models import UserCreate, User, StudentInfo, TeacherInfo, UserRole
+from models import UserCreate, User, StudentInfo, TeacherInfo, Role
 from security import get_password_hash
 from typing import List, Optional, Dict, Any
 from datetime import datetime
@@ -50,7 +50,7 @@ def create_admin_if_not_exists():
                 "email": "admin@example.com",
                 "full_name": "System Administrator",
                 "hashed_password": get_password_hash("admin123"),
-                "role": UserRole.ADMIN,
+                "role": Role.ADMIN,
                 "is_active": True,
                 "created_at": datetime.now().isoformat()
             }
@@ -113,9 +113,9 @@ def create_user(user: UserCreate) -> Dict[str, Any]:
     }
     
     # Add additional info based on role
-    if user.role == UserRole.STUDENT:
+    if user.role == Role.STUDENT:
         new_user["student_info"] = {}
-    elif user.role in [UserRole.TEACHER, UserRole.CLASS_TEACHER]:
+    elif user.role in [Role.TEACHER, Role.CLASS_TEACHER]:
         new_user["teacher_info"] = {}
     
     users.append(new_user)
@@ -168,7 +168,7 @@ def delete_user(user_id: str) -> bool:
 def update_student_info(user_id: str, info: StudentInfo) -> Optional[Dict[str, Any]]:
     """Update student information for a user"""
     user = get_user_by_id(user_id)
-    if not user or user["role"] != UserRole.STUDENT:
+    if not user or user["role"] != Role.STUDENT:
         return None
     
     user["student_info"] = info.dict()
@@ -178,7 +178,7 @@ def update_student_info(user_id: str, info: StudentInfo) -> Optional[Dict[str, A
 def update_teacher_info(user_id: str, info: TeacherInfo) -> Optional[Dict[str, Any]]:
     """Update teacher information for a user"""
     user = get_user_by_id(user_id)
-    if not user or user["role"] not in [UserRole.TEACHER, UserRole.CLASS_TEACHER]:
+    if not user or user["role"] not in [Role.TEACHER, Role.CLASS_TEACHER]:
         return None
     
     return update_user(user_id, {"teacher_info": info.dict()})
@@ -225,6 +225,24 @@ def load_attendance_history():
 def save_attendance_history(data):
     """Save attendance history"""
     with open(ATTENDANCE_HISTORY_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
+
+
+def load_json_data(file_path: str) -> Any:
+    """Load data from a JSON file"""
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            return json.load(f)
+    return None
+
+
+def save_json_data(file_path: str, data: Any):
+    """Save data to a JSON file"""
+    directory = os.path.dirname(file_path)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory)
+    
+    with open(file_path, 'w') as f:
         json.dump(data, f, indent=4)
 
 

@@ -4,7 +4,7 @@ import os
 import uuid
 from datetime import datetime
 
-from models import User, StudentInfo, UserRole
+from models import User, StudentInfo, Role
 from security import get_current_active_user, is_admin, is_class_teacher
 import database as db
 

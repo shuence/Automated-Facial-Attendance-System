@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import os
 import json
-from models import TokenData, UserRole, User
+from models import TokenData, Role, User
 
 # Settings for JWT
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"  # Should be kept in env vars
@@ -100,14 +100,14 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 
 def is_admin(user: dict):
     """Check if user is an admin"""
-    return user.get("role") == UserRole.ADMIN
+    return user.get("role") == Role.ADMIN
 
 
 def is_teacher(user: dict):
     """Check if user is a teacher or class_teacher"""
-    return user.get("role") in [UserRole.TEACHER, UserRole.CLASS_TEACHER]
+    return user.get("role") in [Role.TEACHER, Role.CLASS_TEACHER]
 
 
 def is_class_teacher(user: dict):
     """Check if user is a class_teacher"""
-    return user.get("role") == UserRole.CLASS_TEACHER
+    return user.get("role") == Role.CLASS_TEACHER

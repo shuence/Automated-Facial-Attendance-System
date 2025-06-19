@@ -2,7 +2,7 @@ import os
 import json
 from datetime import datetime
 from security import get_password_hash
-from models import UserRole
+from models import Role
 import uuid
 
 # Define file paths
@@ -34,7 +34,7 @@ def initialize_users():
             "email": "cordinator@dietms.org",
             "full_name": "System Administrator",
             "hashed_password": get_password_hash("admin123"),
-            "role": UserRole.ADMIN,
+            "role": Role.ADMIN,
             "is_active": True,
             "created_at": datetime.now().isoformat()
         },
@@ -45,7 +45,7 @@ def initialize_users():
             "email": "krushnamadrewar@dietms.org",
             "full_name": "Krushna Madrewar",
             "hashed_password": get_password_hash("teacher123"),
-            "role": UserRole.CLASS_TEACHER,
+            "role": Role.CLASS_TEACHER,
             "is_active": True,
             "created_at": datetime.now().isoformat(),
             "teacher_info": {
@@ -60,7 +60,7 @@ def initialize_users():
             "email": "ananddeskmukh@dietms.org",
             "full_name": "Anand Deshmukh",
             "hashed_password": get_password_hash("teacher123"),
-            "role": UserRole.TEACHER,
+            "role": Role.TEACHER,
             "is_active": True,
             "created_at": datetime.now().isoformat(),
             "teacher_info": {
@@ -69,18 +69,52 @@ def initialize_users():
             }
         },
         
-        # Student
+        # Students
+        {
+            "id": str(uuid.uuid4()),
+            "email": "abhishekpathak@dietms.org",
+            "full_name": "Abhishek Pathak",
+            "hashed_password": get_password_hash("student123"),
+            "role": Role.STUDENT,
+            "is_active": True,
+            "created_at": datetime.now().isoformat(),
+            "student_info": {
+                "name": "Abhishek Pathak",
+                "student_id": "EC3230",
+                "department": "EXTC",
+                "year": "TY",
+                "division": "B",
+                "subjects": ["DC", "M&M", "CN", "ESD", "Mini Project"]
+            }
+        },
         {
             "id": str(uuid.uuid4()),
             "email": "shubhampitekar@dietms.org",
             "full_name": "Shubham Pitekar",
             "hashed_password": get_password_hash("student123"),
-            "role": UserRole.STUDENT,
+            "role": Role.STUDENT,
             "is_active": True,
             "created_at": datetime.now().isoformat(),
             "student_info": {
                 "name": "Shubham Pitekar",
-                "student_id": "EC3230",
+                "student_id": "EC3231",
+                "department": "EXTC",
+                "year": "TY",
+                "division": "B",
+                "subjects": ["DC", "M&M", "CN", "ESD", "Mini Project"]
+            }
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "email": "sachinlonkar@dietms.org",
+            "full_name": "Sachin Lonkar",
+            "hashed_password": get_password_hash("student123"),
+            "role": Role.STUDENT,
+            "is_active": True,
+            "created_at": datetime.now().isoformat(),
+            "student_info": {
+                "name": "Sachin Lonkar",
+                "student_id": "EC3232",
                 "department": "EXTC",
                 "year": "TY",
                 "division": "B",
