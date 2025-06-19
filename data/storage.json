@@ -3,7 +3,8 @@
         "shubham_pitekar.jpg",
         "sachin_lonkar.jpg",
         "anushka_mote.jpg",
-        "sai_kenekar.jpg"
+        "sai_kenekar.jpg",
+        "abhishek_pathak.jpg"
     ],
     "classes": [
         {}
@@ -91,6 +92,27 @@
                 "Seminar"
             ],
             "photo": "sai_kenekar.jpg",
+            "registered_date": "2025-05-27"
+        },
+        "abhishek_pathak.jpg": {
+            "name": "Abhishek Pathak",
+            "id": "EC3219",
+            "department": "EXTC",
+            "year": "TY",
+            "division": "B",
+            "subjects": [
+                "AWP",
+                "DC",
+                "M&M",
+                "CN",
+                "ESD",
+                "M&M Lab",
+                "DC Lab",
+                "Mini Project",
+                "Mentor Mentee",
+                "Seminar"
+            ],
+            "photo": "abhishek_pathak.jpg",
             "registered_date": "2025-05-27"
         }
     },

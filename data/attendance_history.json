@@ -37,5 +37,51 @@
                 "manually_corrected": false
             }
         ]
+    },
+    {
+        "date": "2025-05-27",
+        "time": "16:46:57",
+        "department": "EXTC",
+        "year": "TY",
+        "division": "B",
+        "subject": "AWP",
+        "time_slot": "10:15 - 11:15",
+        "records": [
+            {
+                "student_name": "Shubham Pitekar",
+                "status": "Present",
+                "confidence": "63.0%",
+                "model": "ArcFace",
+                "manually_corrected": false
+            },
+            {
+                "student_name": "Sachin Lonkar",
+                "status": "Present",
+                "confidence": "63.9%",
+                "model": "ArcFace",
+                "manually_corrected": false
+            },
+            {
+                "student_name": "Anushka Mote",
+                "status": "Absent",
+                "confidence": "13.9%",
+                "model": "ArcFace",
+                "manually_corrected": false
+            },
+            {
+                "student_name": "Sai Kenekar",
+                "status": "Absent",
+                "confidence": "20.2%",
+                "model": "ArcFace",
+                "manually_corrected": false
+            },
+            {
+                "student_name": "Abhishek Pathak",
+                "status": "Absent",
+                "confidence": "25.4%",
+                "model": "ArcFace",
+                "manually_corrected": false
+            }
+        ]
     }
 ]

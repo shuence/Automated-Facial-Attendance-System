@@ -1,0 +1,67 @@
+[
+    {
+        "id": "6d5752af-8fbb-4329-a566-c5240011780d",
+        "email": "cordinator@dietms.org",
+        "full_name": "System Administrator",
+        "hashed_password": "$2b$12$P8iqZAvMpFteQ6XgJmo4FONvNlmavnQRmFTc3ZG7QM.0AA1/eXHkO",
+        "role": "admin",
+        "is_active": true,
+        "created_at": "2025-06-19T23:41:26.373478"
+    },
+    {
+        "id": "1e5d29ec-a048-447d-9839-5435d4668eab",
+        "email": "krushnamadrewar@dietms.org",
+        "full_name": "Krushna Madrewar",
+        "hashed_password": "$2b$12$a7KoJJmjukA/qcuqrVsfuOvJGUUnALH9Gx30K9LrcQkaJRQArW4Bu",
+        "role": "class_teacher",
+        "is_active": true,                          
+        "created_at": "2025-06-19T23:41:26.815633",
+        "teacher_info": {
+            "department": "EXTC",
+            "subjects": [
+                "DC",
+                "M&M",
+                "CN"
+            ]
+        }
+    },
+    {
+        "id": "761febde-1ee7-4769-89f9-8048f41ccbb2",
+        "email": "ananddeskmukh@dietms.org",
+        "full_name": "Anand Deshmukh",
+        "hashed_password": "$2b$12$flMrIrWYLhwpV0zoWSVy7.BTB2BxXcMzXhi7eBwI2Nw3RkTXgUcVi",
+        "role": "teacher",
+        "is_active": true,
+        "created_at": "2025-06-19T23:41:27.214346",
+        "teacher_info": {
+            "department": "EXTC",
+            "subjects": [
+                "ESD",
+                "Mini Project"
+            ]
+        }
+    },
+    {
+        "id": "44ec3a3f-efd4-41fd-a28b-46213f843470",
+        "email": "shubhampitekar@dietms.org",
+        "full_name": "Shubham Pitekar",
+        "hashed_password": "$2b$12$4E2t/JS0Limr4mkSDbuxUu8lmCAeo6CJiJP6dVtbOgh59YHVHkjme",
+        "role": "student",
+        "is_active": true,
+        "created_at": "2025-06-19T23:41:27.649413",
+        "student_info": {
+            "name": "Shubham Pitekar",
+            "student_id": "EC3230",
+            "department": "EXTC",
+            "year": "TY",
+            "division": "B",
+            "subjects": [
+                "DC",
+                "M&M",
+                "CN",
+                "ESD",
+                "Mini Project"
+            ]
+        }
+    }
+]
